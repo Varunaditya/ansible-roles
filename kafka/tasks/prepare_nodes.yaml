@@ -1,0 +1,75 @@
+---
+- name: Update APT cache
+  apt:
+    update_cache: True
+
+- name: Install JDK and JRE
+  apt:
+    name:
+      - default-jre
+      - default-jdk
+
+# Create UNIX kafka user and the group
+- name: Create UNIX group
+  group:
+    name: "{{ kafka_group }}"
+
+- name: Create UNIX user
+  user:
+    name: "{{ kafka_user }}"
+    groups: "{{ kafka_group }}"
+    shell: /sbin/nologin
+    create_home: no
+    append: yes
+    comment: "User to manage kafka service"
+    state: present
+
+- name: Create Kafka installation directory
+  file:
+    path: "{{ kafka_installation_location }}"
+    state: directory
+    group: "{{ kafka_group }}"
+    owner: "{{ kafka_user }}"
+
+- name: Create Kafka log directory
+  file:
+    path: "{{ kafka_data_dir }}"
+    state: directory
+    group: "{{ kafka_group }}"
+    owner: "{{ kafka_user }}"
+
+# Marking status code 304 as expected to make sure the task doesn't fails in case the file already exists.
+- name: Fetch Kafka binary
+  uri:
+    url: "https://downloads.apache.org/kafka/{{ kafka_version }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+    dest: "/tmp/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+    status_code: [200, 304]
+
+- name: Unzip Kafka binary to installation location
+  unarchive:
+    src: "/tmp/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+    dest: "{{ kafka_installation_location }}"
+    remote_src: True
+
+- name: Remove temporary copy of Kafka binary
+  file:
+    path: "/tmp/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+    state: absent
+
+- name: Fetch JMX exporter
+  uri:
+    url: "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/{{ kafka_jmx_version }}/jmx_prometheus_javaagent-{{ kafka_jmx_version }}.jar"
+    dest: "{{ kafka_path }}/libs/jmx-agent-{{ kafka_jmx_version }}.jar"
+    status_code: [200, 304]
+  when: kafka_jmx_enable == True
+
+- name: Copy JMX exporter config
+  template:
+    src: templates/jmx-config.j2
+    dest: "{{ kafka_path }}/config/jmx-exporter.yaml"
+  when: kafka_jmx_enable == True
+
+- name: Change ownership of Kafka directory
+  shell:
+    cmd: "chown -R {{ kafka_user }}:{{ kafka_group }} {{ kafka_installation_location }}/"
+...

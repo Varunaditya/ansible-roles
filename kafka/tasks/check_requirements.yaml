@@ -1,0 +1,11 @@
+---
+# Kafka RAFT has been marked as production ready from v3.5.0. This task checks this requirement.
+- name: Check if the Kafka version supports KRaft mode
+  fail:
+    msg: "Kafka version needs to >= 3.5.0 to use KRaft mode."
+  run_once: True
+  when: 
+    - kafka_mode == 'kraft'
+    - kafka_version is version('3.5.0', '<')
+    - kraft_production_ready
+...

@@ -1,0 +1,41 @@
+# All the nodes of a cluster should use the same UUID to format the nodes.
+- name: Generate cluster ID
+  shell: 
+    cmd: "python3 generate-cluster-id.py"
+    chdir: "{{ role_path }}/files"
+  delegate_to: localhost
+  run_once: True
+  when: kafka_mode == 'kraft'
+
+- name: Copy cluster ID to all nodes
+  copy:
+    src: files/kafka-cluster-id
+    dest: "{{ kafka_path }}/config"
+  when: kafka_mode == 'kraft'
+
+- name: Stop Kafka service
+  service:
+    name: kafka
+    state: stopped
+
+# This is required to propogate any changes in the nodes of a cluster
+- name: Remove cluster metadata cache
+  file:
+    path: "{{ kafka_data_dir }}/{{ item }}"
+    state: absent
+  loop:
+    - meta.properties
+    - __cluster_metadata-0/quorum-state
+  when: kafka_mode == 'kraft'
+
+- name: Prepare Kafka directories
+  shell:
+    cmd: "/bin/bash kafka-storage.sh format -t $(cat ../config/kafka-cluster-id )  -c {{ kraft_config_path }}/server.properties"
+    chdir: "{{ kafka_path }}/bin"
+  when: kafka_mode == 'kraft'
+
+- name: Start Kafka server
+  service:
+    name: kafka
+    state: restarted
+    enabled: True
