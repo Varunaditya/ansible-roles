@@ -1,0 +1,13 @@
+---
+- name: Configure KRaft server file
+  template:
+    src: "templates/kraft-server.j2"
+    dest: "{{ kraft_config_path }}/server.properties"
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+
+- name: Configure Kafka service file
+  template:
+    src: templates/kafka-service.j2
+    dest: /etc/systemd/system/kafka.service
+...

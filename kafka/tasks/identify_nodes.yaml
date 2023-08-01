@@ -1,0 +1,17 @@
+---
+- name: Identify node ID
+  set_fact:
+    node_id: "{{ ansible_play_hosts.index(ansible_default_ipv4.address) }}"
+
+# This is required to get a string in this format - node_id@node_ip:controller_port,node_id@node_ip:controller_port.
+# The value is used to let nodes know how to connect to the controllers and is needed in the server properties of all the nodes.
+- name: Create list of single quorum leader strings
+  set_fact:
+    kafka_controller: "{{ kafka_controller | default([]) + [ ansible_play_hosts.index(item)|string + '@' + item + ':' + kafka_controller_port|string] }}"
+  loop: "{{ ansible_play_hosts }}"
+  when: "kafka_mode == 'kraft'"
+
+- name: Create a string of all quorum leaders
+  set_fact:
+    kafka_controllers: "{{ kafka_controller | join(',')}}" 
+...

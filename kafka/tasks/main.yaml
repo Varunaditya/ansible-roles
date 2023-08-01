@@ -1,0 +1,7 @@
+---
+- import_tasks: check_requirements.yaml
+- import_tasks: prepare_nodes.yaml
+- import_tasks: identify_nodes.yaml
+- import_tasks: prepare_config_files.yaml
+- import_tasks: manage_cluster_membership.yaml
+...
