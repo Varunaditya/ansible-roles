@@ -1,0 +1,22 @@
+---
+kafka_mode: kraft
+kafka_version: 3.5.0
+kafka_scala_version: 2.13
+kafka_jmx_version: 0.19.0
+kafka_jmx_enable: True
+kraft_production_ready: True
+kafka_group: kafka
+kafka_user: kafka
+kafka_installation_location: /kafka
+kafka_path: "{{ kafka_installation_location }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}"
+kafka_data_dir: "{{ kafka_installation_location }}/logs"
+kraft_config_path: "{{ kafka_path }}/config/kraft"
+kafka_controller_port: 9093
+kafka_broker_port: 9092
+offsets_topic_replication_factor: 3
+transaction_state_log_replication_factor: 2
+transaction_state_log_min_isr: 2
+log_retention_hours: 168
+auto_create_topics_enable: False
+auto_leader_rebalance_enable: True
+...
