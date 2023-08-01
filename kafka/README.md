@@ -58,4 +58,4 @@ Here's an example playbook that uses this role:
 ansible-playbook playbooks/kafka/{purpose}-kafka-{project}-cluster.yml
 
 # Maintainers
-👤  Core Infra - @Varunaditya (varunaditya.jadwal@tiket.com) 
+👤 Varunaditya (varunaditya93@gmail.com) 
