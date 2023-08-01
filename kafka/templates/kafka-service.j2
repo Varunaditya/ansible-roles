@@ -1,0 +1,20 @@
+[Unit]
+Description=Kafka Server (Running in {{ kafka_mode }} mode)
+{% if kafka_mode == "zookeeper" %}
+Requires=zookeeper.service
+After=zookeeper.service
+{% endif %}
+
+[Service]
+User={{ kafka_user }}
+WorkingDirectory={{  kafka_path }}/bin
+{% if kafka_jmx_enable == True %}
+Environment="KAFKA_OPTS=-javaagent:{{ kafka_path }}/libs/jmx-agent-{{ kafka_jmx_version }}.jar=7075:{{ kafka_path }}/config/jmx-exporter.yaml"
+{% endif -%}
+ExecStart=/usr/bin/bash kafka-server-start.sh {{ kraft_config_path }}/server.properties
+ExecStop=/usr/bin/bash kafka-server-stop.sh
+SuccessExitStatus=143
+Restart=on-abnormal
+
+[Install]
+WantedBy=multi-user.target
